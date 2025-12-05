@@ -61,25 +61,37 @@ export function AdminAbout() {
       setLoading(true);
       const response = await profileAPI.get();
       
+      // Gérer le format de réponse paginée
+      let profileData: any = response.data;
+      if (profileData.results && Array.isArray(profileData.results)) {
+        profileData = profileData.results[0];
+      }
+      
       // Charger les données existantes ou utiliser les valeurs par défaut
-      const aboutContent: AboutContent = response.data.aboutContent || {
-        whoAmI: 'Je suis un développeur full stack avec plus de 5 ans d\'expérience dans la création d\'applications web.',
-        approach: 'Mon approche combine une attention particulière au design, à l\'expérience utilisateur et à la qualité du code.',
-        hobby: 'Quand je ne code pas, vous me trouverez en train de lire des articles tech, contribuer à des projets open-source ou explorer de nouveaux frameworks.',
-        stats: {
+      const existingAboutContent = profileData?.aboutContent;
+      const aboutContent: AboutContent = {
+        title: existingAboutContent?.title || 'À Propos de Moi',
+        subtitle: existingAboutContent?.subtitle || 'Développeur Full Stack passionné',
+        whoAmI: existingAboutContent?.whoAmI || 'Je suis un développeur full stack avec plus de 5 ans d\'expérience dans la création d\'applications web.',
+        approach: existingAboutContent?.approach || 'Mon approche combine une attention particulière au design, à l\'expérience utilisateur et à la qualité du code.',
+        hobby: existingAboutContent?.hobby || 'Quand je ne code pas, vous me trouverez en train de lire des articles tech, contribuer à des projets open-source ou explorer de nouveaux frameworks.',
+        stats: existingAboutContent?.stats || {
           projects: 50,
           clients: 30,
           experience: 5,
         },
-        values: [
+        values: existingAboutContent?.values || [
           { title: 'Qualité', description: 'Je m\'engage à livrer du code propre, maintenable et performant' },
           { title: 'Innovation', description: 'Je reste à jour avec les dernières technologies et bonnes pratiques' },
           { title: 'Collaboration', description: 'Je crois au pouvoir du travail en équipe et de la communication' },
         ],
-        skills: [
+        skills: existingAboutContent?.skills || [
           { category: 'Frontend', items: ['React', 'TypeScript', 'Tailwind CSS', 'Framer Motion'] },
           { category: 'Backend', items: ['Node.js', 'Express', 'PostgreSQL', 'MongoDB'] },
           { category: 'Tools', items: ['Git', 'Docker', 'Vite', 'Jest'] },
+          { category: 'Data Engineering', items: ['Python', 'SQL', 'ETL', 'Airflow', 'Spark', 'Data Warehousing'] },
+          { category: 'Data Science', items: ['Python', 'Pandas', 'Scikit-learn', 'Machine Learning', 'Visualisation de données'] },
+          { category: 'Data Analyst', items: ['SQL', 'Power BI', 'Excel', 'Data Visualisation', 'Reporting'] },
         ],
       };
 
@@ -188,33 +200,33 @@ export function AdminAbout() {
               <Input
                 label="Projets complétés"
                 type="number"
-                value={formData.stats.projects}
+                value={formData.stats?.projects || 50}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    stats: { ...formData.stats, projects: parseInt(e.target.value) },
+                    stats: { ...(formData.stats || {}), projects: parseInt(e.target.value) },
                   })
                 }
               />
               <Input
                 label="Clients satisfaits"
                 type="number"
-                value={formData.stats.clients}
+                value={formData.stats?.clients || 30}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    stats: { ...formData.stats, clients: parseInt(e.target.value) },
+                    stats: { ...(formData.stats || {}), clients: parseInt(e.target.value) },
                   })
                 }
               />
               <Input
                 label="Années d'expérience"
                 type="number"
-                value={formData.stats.experience}
+                value={formData.stats?.experience || 5}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    stats: { ...formData.stats, experience: parseInt(e.target.value) },
+                    stats: { ...(formData.stats || {}), experience: parseInt(e.target.value) },
                   })
                 }
               />
@@ -225,7 +237,7 @@ export function AdminAbout() {
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Mes Valeurs</h2>
             <div className="space-y-4">
-              {formData.values.map((value, index) => (
+              {(formData.values || []).map((value, index) => (
                 <div key={index}>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {value.title}
@@ -233,7 +245,7 @@ export function AdminAbout() {
                   <Textarea
                     value={value.description}
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                      const newValues = [...formData.values];
+                      const newValues = [...(formData.values || [])];
                       newValues[index].description = e.target.value;
                       setFormData({ ...formData, values: newValues });
                     }}
@@ -249,15 +261,15 @@ export function AdminAbout() {
           <div>
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Compétences</h2>
             <div className="space-y-6">
-              {formData.skills.map((skillGroup, groupIndex) => (
+              {(formData.skills || []).map((skillGroup, groupIndex) => (
                 <div key={groupIndex}>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {skillGroup.category}
                   </label>
                   <Textarea
-                    value={skillGroup.items.join(', ')}
+                    value={(skillGroup.items || []).join(', ')}
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-                      const newSkills = [...formData.skills];
+                      const newSkills = [...(formData.skills || [])];
                       newSkills[groupIndex].items = e.target.value
                         .split(',')
                         .map((item: string) => item.trim())

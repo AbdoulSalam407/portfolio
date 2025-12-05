@@ -47,11 +47,13 @@ export interface Profile {
   name: string;
   title: string;
   bio: string;
+  adminPassword?: string;
   aboutMe?: string;
   email: string;
   phone: string;
   location: string;
   avatar: string;
+  cv?: string;
   socialLinks: Array<{
     platform: string;
     url: string;

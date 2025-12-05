@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Upload } from 'lucide-react';
 import { Button } from '@components/ui/Button';
 import { Card, CardContent, CardHeader } from '@components/ui/Card';
 import { Input, Textarea, ImageUpload } from '@components/ui/Input';
@@ -10,6 +10,7 @@ import Swal from 'sweetalert2';
 export function AdminProfile() {
   const [loading, setLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const cvFileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     name: '',
     title: '',
@@ -19,6 +20,7 @@ export function AdminProfile() {
     phone: '',
     location: '',
     avatar: '',
+    cv: '',
     socialLinks: [
       { platform: '', url: '' },
     ],
@@ -42,6 +44,7 @@ export function AdminProfile() {
         phone: response.data.phone || '',
         location: response.data.location || '',
         avatar: response.data.avatar || '',
+        cv: response.data.cv || '',
         socialLinks: response.data.socialLinks || [{ platform: '', url: '' }],
       });
     } catch (error) {
@@ -93,6 +96,32 @@ export function AdminProfile() {
     setFormData({ ...formData, socialLinks: newSocialLinks });
   };
 
+  const handleCVUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Vérifier que c'est un PDF
+    if (file.type !== 'application/pdf') {
+      Swal.fire('Erreur', 'Veuillez sélectionner un fichier PDF', 'error');
+      return;
+    }
+
+    // Vérifier la taille (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      Swal.fire('Erreur', 'Le fichier doit faire moins de 10MB', 'error');
+      return;
+    }
+
+    // Convertir en base64
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      setFormData({ ...formData, cv: base64 });
+      Swal.fire('Succès', 'CV importé avec succès', 'success');
+    };
+    reader.readAsDataURL(file);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -135,6 +164,37 @@ export function AdminProfile() {
                   onChange={(url) => setFormData({ ...formData, avatar: url })}
                   preview
                 />
+              </div>
+
+              {/* CV Upload */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">CV (PDF)</label>
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    placeholder="https://example.com/cv.pdf ou fichier importé"
+                    value={formData.cv ? (formData.cv.startsWith('data:') ? 'CV importé (base64)' : formData.cv) : ''}
+                    onChange={(e) => setFormData({ ...formData, cv: e.target.value })}
+                    disabled={formData.cv.startsWith('data:')}
+                    className="flex-1"
+                  />
+                  <input
+                    ref={cvFileInputRef}
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleCVUpload}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => cvFileInputRef.current?.click()}
+                    className="px-3"
+                  >
+                    <Upload size={18} />
+                  </Button>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">Collez une URL ou importez un fichier PDF (max 10MB)</p>
               </div>
 
               {/* Basic Info */}

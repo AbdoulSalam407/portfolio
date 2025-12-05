@@ -14,9 +14,20 @@ export function About() {
   const loadProfile = async () => {
     try {
       const response = await profileAPI.get();
-      setProfile(response.data);
+      
+      // Gérer le format de réponse paginée
+      let profileData: any = response.data;
+      if (Array.isArray(profileData) && profileData.length > 0) {
+        profileData = profileData[0];
+      } else if (profileData.results && Array.isArray(profileData.results)) {
+        profileData = profileData.results[0];
+      }
+      
+      setProfile(profileData);
     } catch (error) {
       console.error('Erreur lors du chargement du profil:', error);
+      // Afficher l'erreur au lieu d'utiliser les valeurs par défaut
+      setProfile(null);
     } finally {
       setLoading(false);
     }
@@ -24,6 +35,10 @@ export function About() {
 
   if (loading) {
     return <div className="text-center py-12">Chargement...</div>;
+  }
+
+  if (!profile) {
+    return <div className="text-center py-12 text-red-600">❌ Erreur: API non disponible. Vérifiez que le serveur Django est lancé sur http://localhost:8000</div>;
   }
 
   const aboutContent = profile?.aboutContent || {
@@ -46,23 +61,33 @@ export function About() {
       { category: 'Frontend', items: ['React', 'TypeScript', 'Tailwind CSS', 'Framer Motion'] },
       { category: 'Backend', items: ['Node.js', 'Express', 'PostgreSQL', 'MongoDB'] },
       { category: 'Tools', items: ['Git', 'Docker', 'Vite', 'Jest'] },
+      { category: 'Data Engineering', items: ['Python', 'SQL', 'ETL', 'Airflow', 'Spark', 'Data Warehousing'] },
+      { category: 'Data Science', items: ['Python', 'Pandas', 'Scikit-learn', 'Machine Learning', 'Visualisation de données'] },
+      { category: 'Data Analyst', items: ['SQL', 'Power BI', 'Excel', 'Data Visualisation', 'Reporting'] },
     ],
   };
 
-  const skills = aboutContent.skills;
+  const skills = aboutContent.skills || [
+    { category: 'Frontend', items: ['React', 'TypeScript', 'Tailwind CSS', 'Framer Motion'] },
+    { category: 'Backend', items: ['Node.js', 'Express', 'PostgreSQL', 'MongoDB'] },
+    { category: 'Tools', items: ['Git', 'Docker', 'Vite', 'Jest'] },
+    { category: 'Data Engineering', items: ['Python', 'SQL', 'ETL', 'Airflow', 'Spark', 'Data Warehousing'] },
+    { category: 'Data Science', items: ['Python', 'Pandas', 'Scikit-learn', 'Machine Learning', 'Visualisation de données'] },
+    { category: 'Data Analyst', items: ['SQL', 'Power BI', 'Excel', 'Data Visualisation', 'Reporting'] },
+  ];
 
   return (
-    <div className="min-h-screen bg-white py-20">
+    <div className="min-h-screen bg-white py-12 sm:py-16 md:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-4xl font-bold mb-4">{aboutContent.title || 'À Propos de Moi'}</h1>
-        <p className="text-gray-600 mb-12 text-lg">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">{aboutContent.title || 'À Propos de Moi'}</h1>
+        <p className="text-gray-600 mb-8 sm:mb-12 text-base sm:text-lg">
           {aboutContent.subtitle || 'Développeur Full Stack passionné par la création d\'applications web modernes et performantes'}
         </p>
 
         {/* Bio Section */}
-        <div className="grid md:grid-cols-2 gap-12 mb-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 mb-16 sm:mb-20">
           <div>
-            <h2 className="text-2xl font-bold mb-4">Qui suis-je?</h2>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4">Qui suis-je?</h2>
             <p className="text-gray-600 mb-4">
               {aboutContent.whoAmI}
             </p>
@@ -78,15 +103,15 @@ export function About() {
             <h3 className="text-2xl font-bold mb-6">Statistiques</h3>
             <div className="space-y-4">
               <div>
-                <div className="text-4xl font-bold">{aboutContent.stats.projects}+</div>
+                <div className="text-4xl font-bold">{aboutContent.stats?.projects || 50}+</div>
                 <p className="text-primary-100">Projets complétés</p>
               </div>
               <div>
-                <div className="text-4xl font-bold">{aboutContent.stats.clients}+</div>
+                <div className="text-4xl font-bold">{aboutContent.stats?.clients || 30}+</div>
                 <p className="text-primary-100">Clients satisfaits</p>
               </div>
               <div>
-                <div className="text-4xl font-bold">{aboutContent.stats.experience}+</div>
+                <div className="text-4xl font-bold">{aboutContent.stats?.experience || 5}+</div>
                 <p className="text-primary-100">Années d'expérience</p>
               </div>
             </div>
@@ -94,8 +119,8 @@ export function About() {
         </div>
 
         {/* Skills Section */}
-        <h2 className="text-2xl font-bold mb-8">Compétences</h2>
-        <div className="grid md:grid-cols-3 gap-8 mb-20">
+        <h2 className="text-xl sm:text-2xl font-bold mb-6 sm:mb-8">Compétences</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-16 sm:mb-20">
           {skills.map((skillGroup) => (
             <Card key={skillGroup.category}>
               <CardContent className="pt-6">
@@ -114,9 +139,9 @@ export function About() {
         </div>
 
         {/* Values Section */}
-        <h2 className="text-2xl font-bold mb-8">Mes Valeurs</h2>
-        <div className="grid md:grid-cols-3 gap-8">
-          {aboutContent.values.map((value) => (
+        <h2 className="text-xl sm:text-2xl font-bold mb-6 sm:mb-8">Mes Valeurs</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
+          {(aboutContent.values || []).map((value) => (
             <Card key={value.title}>
               <CardContent className="pt-6">
                 <h3 className="text-xl font-semibold mb-2">{value.title}</h3>

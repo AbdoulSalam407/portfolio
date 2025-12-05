@@ -4,7 +4,7 @@ import { LogOut, FileText, Award, BookOpen, MessageSquare, User, Info } from 'lu
 import { Button } from '@components/ui/Button';
 import { Card, CardContent, CardHeader } from '@components/ui/Card';
 import { useAuthStore } from '@stores/authStore';
-import { projectsAPI, certificationsAPI, educationAPI, messagesAPI, statsAPI } from '@services/api';
+import { projectsAPI, certificationsAPI, educationAPI, messagesAPI } from '@services/api';
 import type { Stats } from '@/types';
 
 export function AdminDashboard() {
@@ -19,44 +19,65 @@ export function AdminDashboard() {
 
   const loadData = async () => {
     try {
-      const [statsRes, messagesRes] = await Promise.all([
-        statsAPI.get().catch(() => null),
+      // Charger toutes les données
+      const [projectsRes, certificationsRes, educationRes, messagesRes] = await Promise.all([
+        projectsAPI.getAll(),
+        certificationsAPI.getAll(),
+        educationAPI.getAll(),
         messagesAPI.getAll()
       ]);
       
-      const totalMessages = messagesRes.data.length;
-      
-      if (statsRes) {
-        console.log('Stats reçues:', statsRes.data);
-        setStats(statsRes.data);
-      } else {
-        // Fallback: charger les données manuellement
-        const projectsRes = await projectsAPI.getAll();
-        const certificationsRes = await certificationsAPI.getAll();
-        const educationRes = await educationAPI.getAll();
-        
-        const techMap: { [key: string]: number } = {};
-        projectsRes.data.forEach(project => {
-          if (project.technologies && Array.isArray(project.technologies)) {
-            project.technologies.forEach(tech => {
-              techMap[tech] = (techMap[tech] || 0) + 1;
-            });
-          }
-        });
-        
-        const technologies = Object.entries(techMap).map(([name, count]) => ({
-          name,
-          count
-        })).sort((a, b) => b.count - a.count);
-        
-        setStats({
-          totalProjects: projectsRes.data.length,
-          totalCertifications: certificationsRes.data.length,
-          totalEducation: educationRes.data.length,
-          totalMessages,
-          technologies
-        });
+      // Gérer les réponses paginées
+      let projects: any = projectsRes.data;
+      if (projects.results && Array.isArray(projects.results)) {
+        projects = projects.results;
+      } else if (!Array.isArray(projects)) {
+        projects = [];
       }
+      
+      let certifications: any = certificationsRes.data;
+      if (certifications.results && Array.isArray(certifications.results)) {
+        certifications = certifications.results;
+      } else if (!Array.isArray(certifications)) {
+        certifications = [];
+      }
+      
+      let education: any = educationRes.data;
+      if (education.results && Array.isArray(education.results)) {
+        education = education.results;
+      } else if (!Array.isArray(education)) {
+        education = [];
+      }
+      
+      let messages: any = messagesRes.data;
+      if (messages.results && Array.isArray(messages.results)) {
+        messages = messages.results;
+      } else if (!Array.isArray(messages)) {
+        messages = [];
+      }
+      
+      // Calculer les technologies utilisées
+      const techMap: { [key: string]: number } = {};
+      projects.forEach((project: any) => {
+        if (project.technologies && Array.isArray(project.technologies)) {
+          project.technologies.forEach((tech: string) => {
+            techMap[tech] = (techMap[tech] || 0) + 1;
+          });
+        }
+      });
+      
+      const technologies = Object.entries(techMap).map(([name, count]) => ({
+        name,
+        count
+      })).sort((a, b) => b.count - a.count);
+      
+      setStats({
+        totalProjects: projects.length,
+        totalCertifications: certifications.length,
+        totalEducation: education.length,
+        totalMessages: messages.length,
+        technologies
+      } as any);
     } catch (error) {
       console.error('Erreur lors du chargement des données:', error);
     } finally {
@@ -109,18 +130,18 @@ export function AdminDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100 py-12">
+    <div className="min-h-screen bg-gray-100 py-12 sm:py-16 md:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900">Tableau de Bord Admin</h1>
-          <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">Tableau de Bord Admin</h1>
+          <Button variant="outline" onClick={handleLogout} className="flex items-center gap-2 w-full sm:w-auto justify-center sm:justify-start">
             <LogOut size={18} /> Déconnexion
           </Button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-12">
           {statCards.map((stat) => (
             <Card key={stat.label}>
               <CardContent className="pt-6">
@@ -139,7 +160,7 @@ export function AdminDashboard() {
         </div>
 
         {/* Management Sections */}
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {[
             {
               title: 'Modifier le Profil',

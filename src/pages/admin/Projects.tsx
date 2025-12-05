@@ -33,7 +33,16 @@ export function AdminProjects() {
   const loadProjects = async () => {
     try {
       const response = await projectsAPI.getAll();
-      setProjects(response.data);
+      
+      // Gérer le format de réponse paginée
+      let projectsData: any = response.data;
+      if (projectsData.results && Array.isArray(projectsData.results)) {
+        projectsData = projectsData.results;
+      } else if (!Array.isArray(projectsData)) {
+        projectsData = [];
+      }
+      
+      setProjects(projectsData);
     } catch (error) {
       console.error('Erreur:', error);
       await Swal.fire('Erreur', 'Impossible de charger les projets', 'error');

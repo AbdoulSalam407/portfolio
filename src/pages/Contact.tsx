@@ -51,10 +51,10 @@ export function Contact() {
   };
 
   return (
-    <div className="min-h-screen bg-white py-20">
+    <div className="min-h-screen bg-white py-12 sm:py-16 md:py-20">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-4xl font-bold mb-4">Me Contacter</h1>
-        <p className="text-gray-600 mb-12">
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">Me Contacter</h1>
+        <p className="text-gray-600 mb-8 sm:mb-12 text-base sm:text-lg">
           Vous avez un projet en tête? N'hésitez pas à me contacter
         </p>
 

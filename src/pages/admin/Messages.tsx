@@ -20,7 +20,16 @@ export function AdminMessages() {
   const loadMessages = async () => {
     try {
       const response = await messagesAPI.getAll();
-      setMessages(response.data);
+      
+      // Gérer le format de réponse paginée
+      let messagesData: any = response.data;
+      if (messagesData.results && Array.isArray(messagesData.results)) {
+        messagesData = messagesData.results;
+      } else if (!Array.isArray(messagesData)) {
+        messagesData = [];
+      }
+      
+      setMessages(messagesData);
     } catch (error) {
       console.error('Erreur:', error);
       await Swal.fire('Erreur', 'Impossible de charger les messages', 'error');

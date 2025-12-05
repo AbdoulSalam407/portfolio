@@ -31,7 +31,16 @@ export function AdminEducation() {
   const loadEducation = async () => {
     try {
       const response = await educationAPI.getAll();
-      setEducation(response.data);
+      
+      // Gérer le format de réponse paginée
+      let educationData: any = response.data;
+      if (educationData.results && Array.isArray(educationData.results)) {
+        educationData = educationData.results;
+      } else if (!Array.isArray(educationData)) {
+        educationData = [];
+      }
+      
+      setEducation(educationData);
     } catch (error) {
       console.error('Erreur:', error);
       await Swal.fire('Erreur', 'Impossible de charger les formations', 'error');

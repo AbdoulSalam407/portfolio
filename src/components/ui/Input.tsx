@@ -165,9 +165,22 @@ export const ImageUpload = React.forwardRef<HTMLDivElement, ImageUploadProps>(
               {uploading ? 'Upload en cours...' : 'Cliquez pour télécharger une image'}
             </button>
           </div>
-          {preview && value && (
-            <div className="w-24 h-24 rounded-lg overflow-hidden border border-gray-300">
-              <img src={value} alt="Preview" className="w-full h-full object-cover" />
+          {preview && value && value.length > 0 && (
+            <div className="w-24 h-24 rounded-lg overflow-hidden border border-gray-300 flex-shrink-0 bg-gray-100 flex items-center justify-center">
+              {value.startsWith('data:') || value.startsWith('http') ? (
+                <img 
+                  src={value} 
+                  alt="Preview" 
+                  className="w-full h-full object-cover"
+                  loading="lazy"
+                  onError={(e) => {
+                    console.error('Image preview failed to load');
+                    (e.target as HTMLImageElement).style.display = 'none';
+                  }}
+                />
+              ) : (
+                <span className="text-2xl">📷</span>
+              )}
             </div>
           )}
         </div>

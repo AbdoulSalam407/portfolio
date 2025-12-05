@@ -20,8 +20,17 @@ export function Projects() {
   const loadProjects = async () => {
     try {
       const response = await projectsAPI.getAll();
-      setProjects(response.data);
-      setFilteredProjects(response.data);
+      
+      // Gérer le format de réponse paginée
+      let projectsData: any = response.data;
+      if (projectsData.results && Array.isArray(projectsData.results)) {
+        projectsData = projectsData.results;
+      } else if (!Array.isArray(projectsData)) {
+        projectsData = [];
+      }
+      
+      setProjects(projectsData);
+      setFilteredProjects(projectsData);
     } catch (error) {
       console.error('Erreur lors du chargement des projets:', error);
     } finally {
@@ -61,13 +70,13 @@ export function Projects() {
   }
 
   return (
-    <div className="min-h-screen bg-white py-20">
+    <div className="min-h-screen bg-white py-12 sm:py-16 md:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-4xl font-bold mb-4">Mes Projets</h1>
-        <p className="text-gray-600 mb-12">Découvrez mes réalisations et projets récents</p>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">Mes Projets</h1>
+        <p className="text-gray-600 mb-8 sm:mb-12 text-base sm:text-lg">Découvrez mes réalisations et projets récents</p>
 
         {/* Filters */}
-        <div className="mb-12 space-y-6">
+        <div className="mb-8 sm:mb-12 space-y-4 sm:space-y-6">
           <Input
             placeholder="Rechercher un projet..."
             value={searchTerm}
@@ -89,7 +98,7 @@ export function Projects() {
 
         {/* Projects Grid */}
         {filteredProjects.length > 0 ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
             {filteredProjects.map((project) => (
               <Card key={project.id} hover>
                 <div className="h-48 bg-gray-200 overflow-hidden rounded-t-lg">

@@ -14,7 +14,16 @@ export function EducationPage() {
   const loadEducation = async () => {
     try {
       const response = await educationAPI.getAll();
-      setEducation(response.data);
+      
+      // Gérer le format de réponse paginée
+      let educationData: any = response.data;
+      if (educationData.results && Array.isArray(educationData.results)) {
+        educationData = educationData.results;
+      } else if (!Array.isArray(educationData)) {
+        educationData = [];
+      }
+      
+      setEducation(educationData);
     } catch (error) {
       console.error('Erreur lors du chargement des formations:', error);
     } finally {
@@ -34,10 +43,10 @@ export function EducationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white py-20">
+    <div className="min-h-screen bg-white py-12 sm:py-16 md:py-20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-4xl font-bold mb-4">Formations</h1>
-        <p className="text-gray-600 mb-12">Mon parcours éducatif et professionnel</p>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">Formations</h1>
+        <p className="text-gray-600 mb-8 sm:mb-12 text-base sm:text-lg">Mon parcours éducatif et professionnel</p>
 
         <div className="space-y-8">
           {education.map((edu, index) => (

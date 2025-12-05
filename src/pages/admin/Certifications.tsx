@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Trash2, Edit2, Plus, ArrowLeft, X } from 'lucide-react';
+import { Trash2, Edit2, Plus, ArrowLeft, X, Upload } from 'lucide-react';
 import { Button } from '@components/ui/Button';
 import { Card, CardContent } from '@components/ui/Card';
-import { Input, ImageUpload } from '@components/ui/Input';
+import { Input } from '@components/ui/Input';
 import { certificationsAPI } from '@services/api';
 import type { Certification } from '@/types';
 import Swal from 'sweetalert2';
@@ -22,15 +22,37 @@ export function AdminCertifications() {
     skills: '',
   });
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     loadCertifications();
   }, []);
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      setFormData({ ...formData, image: base64 });
+    };
+    reader.readAsDataURL(file);
+  };
+
   const loadCertifications = async () => {
     try {
       const response = await certificationsAPI.getAll();
-      setCerts(response.data);
+      
+      // Gérer le format de réponse paginée
+      let certsData: any = response.data;
+      if (certsData.results && Array.isArray(certsData.results)) {
+        certsData = certsData.results;
+      } else if (!Array.isArray(certsData)) {
+        certsData = [];
+      }
+      
+      setCerts(certsData);
     } catch (error) {
       console.error('Erreur:', error);
       await Swal.fire('Erreur', 'Impossible de charger les attestations', 'error');
@@ -240,12 +262,35 @@ export function AdminCertifications() {
                   onChange={(e) => setFormData({ ...formData, issueDate: e.target.value })}
                   required
                 />
-                <ImageUpload
-                  label="Image de l'attestation"
-                  value={formData.image}
-                  onChange={(url) => setFormData({ ...formData, image: url })}
-                  preview
-                />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Image de l'attestation
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="text"
+                      placeholder="https://example.com/image.jpg"
+                      value={formData.image}
+                      onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                      className="flex-1"
+                    />
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-3"
+                    >
+                      <Upload size={18} />
+                    </Button>
+                  </div>
+                </div>
                 <Input
                   label="Compétences (séparées par des virgules)"
                   value={formData.skills}

@@ -14,7 +14,16 @@ export function Certifications() {
   const loadCertifications = async () => {
     try {
       const response = await certificationsAPI.getAll();
-      setCerts(response.data);
+      
+      // Gérer le format de réponse paginée
+      let certsData: any = response.data;
+      if (certsData.results && Array.isArray(certsData.results)) {
+        certsData = certsData.results;
+      } else if (!Array.isArray(certsData)) {
+        certsData = [];
+      }
+      
+      setCerts(certsData);
     } catch (error) {
       console.error('Erreur lors du chargement des attestations:', error);
     } finally {
@@ -34,20 +43,32 @@ export function Certifications() {
   }
 
   return (
-    <div className="min-h-screen bg-white py-20">
+    <div className="min-h-screen bg-white py-12 sm:py-16 md:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h1 className="text-4xl font-bold mb-4">Attestations & Certifications</h1>
-        <p className="text-gray-600 mb-12">Mes certifications professionnelles et formations</p>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4">Attestations & Certifications</h1>
+        <p className="text-gray-600 mb-8 sm:mb-12 text-base sm:text-lg">Mes certifications professionnelles et formations</p>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {certs.map((cert) => (
             <Card key={cert.id} hover>
-              <div className="h-40 bg-gray-200 overflow-hidden rounded-t-lg">
-                <img
-                  src={cert.image}
-                  alt={cert.title}
-                  className="w-full h-full object-cover"
-                />
+              <div className="h-40 bg-gradient-to-br from-primary-100 to-primary-200 overflow-hidden rounded-t-lg flex items-center justify-center">
+                {cert.image && cert.image.trim() && (cert.image.startsWith('data:') || cert.image.startsWith('http')) ? (
+                  <img
+                    src={cert.image}
+                    alt={cert.title}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                      (e.target as HTMLImageElement).parentElement?.classList.add('flex', 'items-center', 'justify-center');
+                    }}
+                  />
+                ) : (
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-primary-700 mb-2">📜</div>
+                    <p className="text-sm text-primary-600 px-2">{cert.title}</p>
+                  </div>
+                )}
               </div>
               <CardContent className="pt-6">
                 <h3 className="text-lg font-semibold mb-2">{cert.title}</h3>
