@@ -1,4 +1,4 @@
-import { ArrowRight, Code2, Zap, Users, Github, Linkedin, Mail, Phone, MapPin, Twitter, Facebook, Instagram, Youtube, Dribbble, Globe, GitBranch } from 'lucide-react';
+import { ArrowRight, Code2, Github, Linkedin, Mail, Phone, MapPin, Twitter, Facebook, Instagram, Youtube, Dribbble, Globe, GitBranch } from 'lucide-react';
 import { Button } from '@components/ui/Button';
 import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
